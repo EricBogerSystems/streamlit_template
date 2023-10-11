@@ -2,6 +2,9 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from modules.api_gui import API_Gui
 
+gui = API_Gui()
+
+
 # Streamlit page config
 st.set_page_config(page_title="Template App", page_icon="🖥️", layout="wide")
 
@@ -13,4 +16,4 @@ with open("style/default_style.css")as f:
 st.title("Template App")
 st.subheader("... under construction ...")
 
-    
+gui.run()

@@ -5,8 +5,6 @@ from argparse import ArgumentParser
 from time import sleep
 from modules.api_app import API_App
 
-#import curses
-
 VERSION = '0.0.1'
 
 app = API_App()
@@ -28,6 +26,7 @@ def do():
 #
 def terminate():
     app.close()
+    print('Application terminated.')
     exit(0)
 
 #
@@ -56,6 +55,9 @@ if __name__ == '__main__':
             if not do():
                 error('Do failed!')
             sleep(0.01)
+
+        except KeyboardInterrupt:
+            error('User interrupt ^C')
         except Exception as ex:
             error(ex)
         
