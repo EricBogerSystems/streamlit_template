@@ -1,7 +1,7 @@
 
 import threading
 import os
-
+from time import sleep
 
 class API_App:
     app_name = None
@@ -16,6 +16,8 @@ class API_App:
         self.gui_filename = args.prog.replace('.py', '_gui.py')
         gui_thread = threading.Thread(target=self._thread_gui, daemon=True) 
         gui_thread.start()
+        ipc_thread = threading.Thread(target=self._thread_ipc, daemon=True)
+        ipc_thread.start()
         return True
 
     def close(self):
@@ -24,3 +26,6 @@ class API_App:
     def _thread_gui(self):
         os.system('streamlit run ' + self.gui_filename)
         
+    def _thread_ipc(self):
+        while True:
+            sleep(0.01)

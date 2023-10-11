@@ -51,7 +51,7 @@ if __name__ == '__main__':
     if not setup(args):
         error('Setup failed!')
 
-    while(True):
+    while True:
         try:
             if not do():
                 error('Do failed!')
