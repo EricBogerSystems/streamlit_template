@@ -1,60 +1,56 @@
 
 import threading
-import os
+import subprocess
 import zmq
+import json
 from time import sleep
 
-
-class API_App:
-    app_name = None
-    gui_name = None
+class API_APP:
+    _app_name = None
+    _gui_name = None
+    _zmq_context = None
+    _zmq_socket = None
 
     def __init__(self):
-        self.app_filename = None
-        self.gui_filename = None
+        self._app_filename = None
+        self._gui_filename = None
+        self._process_streamlit = None
+        self._zmq_context = zmq.Context()
+        self._zmq_socket = self._zmq_context.socket(zmq.REP)
 
     def run(self, args):
-        self.app_filename = args.prog
-        self.gui_filename = args.prog.replace('.py', '_gui.py')
+        self._app_filename = args.prog
+        self._gui_filename = args.prog.replace('.py', '_gui.py')
         gui_thread = threading.Thread(target=self._thread_gui, daemon=True) 
         gui_thread.start()
         ipc_thread = threading.Thread(target=self._thread_ipc, daemon=True)
         ipc_thread.start()
+        self._zmq_socket.bind('tcp://*:5555') 
         return True
 
     def close(self):
-        return
+        if self._process_streamlit != None:
+            self._process_streamlit.kill()
+        return True
 
     def _thread_gui(self):
-        os.system('streamlit run ' + self.gui_filename)
-        
+        cmd = 'streamlit run ' + self._gui_filename
+        self._process_streamlit = subprocess.Popen(cmd, shell=True)
+       
     def _thread_ipc(self):
+        cnt = 0
+        txmsg = { }
+        txmsg['CMD'] = {'ACK':True, 'CNT':0}
+
         while True:
             sleep(0.01)
 
+            # receive request message (from GUI)
+            rxmsg = json.loads(self._zmq_socket.recv_string())
+            print(rxmsg)
+            
+            # send response (to GUI)
+            cnt += 1
+            txmsg['CMD']['CNT'] = cnt
+            self._zmq_socket.send_string(json.dumps(txmsg))
 
-"""
-#
-#   Hello World server in Python
-#   Binds REP socket to tcp://*:5555
-#   Expects b"Hello" from client, replies with b"World"
-#
-
-import time
-import zmq
-
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-socket.bind("tcp://*:5555")
-
-while True:
-    #  Wait for next request from client
-    message = socket.recv()
-    print(f"Received request: {message}")
-
-    #  Do some 'work'
-    time.sleep(1)
-
-    #  Send reply back to client
-    socket.send_string("World")
-"""

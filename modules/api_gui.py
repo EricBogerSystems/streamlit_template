@@ -1,53 +1,42 @@
 
 import threading
-import os
 import zmq
+import json
 from time import sleep
 
-class API_App:
+class API_GUI:
     app_name = None
     gui_name = None
 
     def __init__(self):
         self.app_filename = None
         self.gui_filename = None
+        self._zmq_context = zmq.Context()
+        self._zmq_socket = self._zmq_context.socket(zmq.REQ)
 
     def run(self, args):
         gui_thread = threading.Thread(target=self._thread_ipc, daemon=True) 
         gui_thread.start()
+        self._zmq_socket.connect("tcp://localhost:5555")
         return True
 
     def close(self):
-        return
+        return True
 
     def _thread_ipc(self):
+        cnt = 0
+        txmsg = { }
+        txmsg['CMD'] = {'UPDATE':True, 'CNT':0}
+
         while True:
+            sleep(1.0)
+            
+            # send request (to APP)
+            cnt += 1
+            txmsg['CMD']['CNT'] = cnt
+            self._zmq_socket.send_string(json.dumps(txmsg))
 
-            sleep(0.01)
-        
-
-"""
-#
-#   Hello World client in Python
-#   Connects REQ socket to tcp://localhost:5555
-#   Sends "Hello" to server, expects "World" back
-#
-
-import zmq
-
-context = zmq.Context()
-
-#  Socket to talk to server
-print("Connecting to hello world server...")
-socket = context.socket(zmq.REQ)
-socket.connect("tcp://localhost:5555")
-
-#  Do 10 requests, waiting each time for a response
-for request in range(10):
-    print(f"Sending request {request} ...")
-    socket.send_string("Hello")
-
-    #  Get the reply.
-    message = socket.recv()
-    print(f"Received reply {request} [ {message} ]")
-"""
+            # receive response (from APP)
+            rxmsg = json.loads(self._zmq_socket.recv_string())
+            print(rxmsg)
+            

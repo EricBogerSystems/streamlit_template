@@ -3,11 +3,12 @@
 import os
 from argparse import ArgumentParser
 from time import sleep
-from modules.api_app import API_App
+from modules.api_app import API_APP
 
 VERSION = '0.0.1'
 
-app = API_App()
+app = API_APP()
+
 
 #
 # Setup application
@@ -19,6 +20,8 @@ def setup(args):
 # Main loop task
 #
 def do():
+    sleep(10.0)
+    error('TIMEOUT')
     return True
 
 #
